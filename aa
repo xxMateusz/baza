@@ -1,0 +1,161 @@
+-- Tworzenie bazy danych
+CREATE DATABASE uniwersytet_6;
+GO
+
+-- Używanie bazy danych
+USE uniwersytet_6;
+GO
+
+-- Tworzenie tabeli "lecturers"
+CREATE TABLE lecturers (
+    lecturer_id int PRIMARY KEY,
+    acad_position varchar(50),
+    department varchar(100) NOT NULL
+);
+
+-- Tworzenie tabeli "acad_positions"
+CREATE TABLE acad_positions (
+    acad_position varchar(50),
+    overtime_rate decimal(6, 2) NOT NULL,
+    CONSTRAINT kp_ap PRIMARY KEY (acad_position)
+);
+
+-- Dodanie klucza obcego w tabeli "lecturers" do "acad_positions"
+ALTER TABLE lecturers
+ADD CONSTRAINT r_lap FOREIGN KEY (acad_position)
+REFERENCES acad_positions(acad_position)
+ON DELETE NO ACTION ON UPDATE CASCADE;
+
+-- Tworzenie tabeli "students"
+CREATE TABLE students (
+    student_id int IDENTITY PRIMARY KEY,
+    surname nvarchar(20),
+    first_name nvarchar(20),
+    date_of_birth date,
+    group_no int
+);
+
+-- Tworzenie tabeli "groups"
+CREATE TABLE groups (
+    group_no int IDENTITY PRIMARY KEY
+);
+
+-- Dodanie klucza obcego w tabeli "students" do "groups"
+ALTER TABLE students
+ADD CONSTRAINT r_sg FOREIGN KEY (group_no)
+REFERENCES groups(group_no)
+ON DELETE NO ACTION ON UPDATE CASCADE;
+
+-- Tworzenie tabeli "tuition_fees"
+CREATE TABLE tuition_fees (
+    payment_id int IDENTITY PRIMARY KEY,
+    student_id int NOT NULL,
+    fee_amount decimal(8, 2),
+    date_of_payment date CHECK (date_of_payment <= GETDATE())
+);
+
+-- Dodanie klucza obcego w tabeli "tuition_fees" do "students"
+ALTER TABLE tuition_fees
+ADD CONSTRAINT r_ts FOREIGN KEY (student_id)
+REFERENCES students(student_id)
+ON DELETE NO ACTION ON UPDATE CASCADE;
+
+-- Tworzenie tabeli "modules"
+CREATE TABLE modules (
+    module_id int IDENTITY PRIMARY KEY,
+    module_name varchar(30) UNIQUE,
+    no_of_hours decimal(5, 2),
+    lecturer_id int,
+    preceding_module int,
+    department varchar(100) NOT NULL
+);
+
+-- Dodanie klucza obcego w tabeli "modules" do "modules" (preceding_module)
+ALTER TABLE modules
+ADD CONSTRAINT r_mod FOREIGN KEY (preceding_module)
+REFERENCES modules(module_id);
+
+-- Tworzenie tabeli "departments"
+CREATE TABLE departments (
+    department varchar(100) PRIMARY KEY
+);
+
+-- Dodanie klucza obcego w tabeli "modules" do "departments"
+ALTER TABLE modules
+ADD CONSTRAINT r_md FOREIGN KEY (department)
+REFERENCES departments(department)
+ON DELETE NO ACTION ON UPDATE CASCADE;
+
+-- Tworzenie tabeli "students_modules"
+CREATE TABLE students_modules (
+    student_id int,
+    module_id int,
+    planned_exam_date date,
+    CONSTRAINT kp_stuMod PRIMARY KEY (student_id, module_id)
+);
+
+-- Dodanie kluczy obcych w tabeli "students_modules" do "students" i "modules"
+ALTER TABLE students_modules
+ADD CONSTRAINT r_ss FOREIGN KEY (student_id)
+REFERENCES students(student_id);
+
+ALTER TABLE students_modules
+ADD CONSTRAINT r_ms FOREIGN KEY (module_id)
+REFERENCES modules(module_id);
+
+-- Tworzenie tabeli "employees"
+CREATE TABLE employees (
+    employee_id int IDENTITY PRIMARY KEY,
+    surname nvarchar(20) NOT NULL,
+    first_name nvarchar(20) NOT NULL,
+    employment_date date CHECK (employment_date <= GETDATE()),
+    PESEL char(11) NOT NULL
+);
+
+-- Dodanie kluczy obcych w tabelach "lecturers" i "modules" do "departments" i "employees"
+ALTER TABLE lecturers
+ADD CONSTRAINT r_dl FOREIGN KEY (department)
+REFERENCES departments(department);
+
+ALTER TABLE lecturers
+ADD CONSTRAINT r_lm FOREIGN KEY (lecturer_id)
+REFERENCES employees(employee_id);
+
+ALTER TABLE modules
+ADD CONSTRAINT r_ml FOREIGN KEY (lecturer_id)
+REFERENCES lecturers(lecturer_id);
+
+
+-- Tworzenie tabeli "student_grades"
+-- Tworzenie tabeli "grades"
+CREATE TABLE grades (
+    grade char(2) PRIMARY KEY
+);
+-- Dodawanie unikalnego ograniczenia do kolumny "student_id" w tabeli "students_modules"
+ALTER TABLE students_modules
+ADD CONSTRAINT UQ_StudentModule UNIQUE (student_id, module_id);
+
+-- Tworzenie tabeli "student_grades"
+CREATE TABLE student_grades (
+    student_id int,
+    module_id int,
+    grade char(2) not null,
+    exam_date date,
+    PRIMARY KEY (student_id, module_id, exam_date),
+    FOREIGN KEY (grade) REFERENCES grades(grade),
+    FOREIGN KEY (student_id, module_id) REFERENCES students_modules(student_id, module_id)
+);
+
+
+
+--ALTER TABLE students_modules
+--ADD CONSTRAINT r_ss_student FOREIGN KEY (student_id)
+--REFERENCES student_grades(student_id);
+
+--ALTER TABLE students_modules
+--ADD CONSTRAINT r_ms_module FOREIGN KEY (module_id)
+--REFERENCES student_grades(module_id);
+
+
+--ALTER TABLE student_grades add constraint r_qq
+--foreign key (module_id,student_id) references students_modules (module_id,student_id)
