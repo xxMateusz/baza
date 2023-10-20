@@ -1,0 +1,77 @@
+--zad 1 a 
+
+select group_no
+from groups 
+where group_no like '_[A-P]%'
+b
+select surname
+from students
+order by group_no
+--zad 1 a
+SELECT 34+NULL
+--b
+select * 
+from employees
+where PESEL is null  or employment_date is null
+--c
+select * 
+from students_modules
+
+--d
+
+select *,DATEDIFF(DAY,getdate(),planned_exam_date)
+from students_modules
+order by planned_exam_date desc
+--e poniewaz nie liczy nulli 
+select count(planned_exam_date)
+from students_modules
+
+
+	--f  ponieaz zliczylo wszytkie kolumny, i tutaj nulle nam nie przeszakadzaly 
+
+	select count(*)
+	from students_modules
+
+
+	--zad 11.2
+	--a
+	select distinct student_id, exam_date
+	from student_grades
+	order by exam_date
+	--b
+	select student_id 
+	from student_grades
+	where datediff(days,2018-03-01,exam_date) > 0 and exam_date < 2018-03-31
+
+	select exam_date
+	from student_grades
+
+	--zad 1.03 jest zle poniewa przypisano alias family name w selecie,a program najpierw wykonuje funkcje where 
+	SELECT student_id, surname 
+FROM students
+WHERE surname='Fisher'
+
+--zad 1.04
+	select module_name, lecturer_id
+	from modules
+	where lecturer_id = 8 or lecturer_id is null
+
+	select module_name, lecturer_id,
+	coalesce (lecturer_id, 0)
+	
+	from modules
+	where lecturer_id = 8 or lecturer_id is null
+	--zad 11.05 przy cast dostajemy blad, nie mozna przkonwertowac tekstu na int przy try_cast dosjatmy nulla 
+
+	select try_cast('ada' as int)
+	--zad 6
+	select convert(varchar(20),getdate(),101)
+
+	--zad7
+	select group_no
+	from groups
+	where group_no like 'DM%'
+	--b
+		select group_no
+	from groups
+	where group_no like '!10'
